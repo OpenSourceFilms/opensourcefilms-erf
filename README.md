@@ -94,7 +94,7 @@ Full details are in `THIRD_PARTY_LICENSES.md`. You must independently verify the
 
 ## Acknowledgments
 
-ERF runs on GPU infrastructure provided by Runpod, our compute sponsor. Their on-demand pricing is
+ERF runs on GPU infrastructure provided in collaboration with Runpod. Their on-demand pricing is
 what makes it practical to run a pipeline this GPU-heavy for a small independent production.
 
 ## Where to go next
