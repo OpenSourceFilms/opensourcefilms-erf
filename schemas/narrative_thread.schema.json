@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/narrative_thread/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","thread_id","seed_event_id","member_event_ids","arc_shape","scores","est_duration_s","created_at_utc"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "thread_id": {"type": "string", "pattern": "^thr_[0-9a-f]{12}$"},
+    "seed_event_id": {"type": "string"},
+    "member_event_ids": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "arc_shape": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "ordered emotional_beat sequence of member events"
+    },
+    "dominant_person_id": {"type": ["string","null"], "default": null},
+    "theme_label": {"type": ["string","null"], "default": null, "description": "cluster-centroid or Flash-derived short phrase"},
+    "cluster_id": {"type": ["integer","null"], "default": null, "description": "HDBSCAN cluster label; -1 = noise"},
+    "scores": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["composite","hook","arc","coherence","quote","broll","duration_fit"],
+      "properties": {
+        "composite":    {"type": "number", "minimum": 0, "maximum": 1},
+        "hook":         {"type": "number", "minimum": 0, "maximum": 1},
+        "arc":          {"type": "number", "minimum": 0, "maximum": 1},
+        "coherence":    {"type": "number", "minimum": 0, "maximum": 1},
+        "quote":        {"type": "number", "minimum": 0, "maximum": 1},
+        "broll":        {"type": "number", "minimum": 0, "maximum": 1},
+        "duration_fit": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "est_duration_s": {"type": "number", "minimum": 0},
+    "created_at_utc": {"type": "string", "format": "date-time"}
+  }
+}

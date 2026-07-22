@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://erf.local/schemas/parallel_streams_qc.v2.0.0.schema.json",
+  "title": "Parallel Streams QC",
+  "description": "Quality-control summary for a media file's parallel stream processing.",
+  "type": "object",
+  "properties": {
+    "media_id": {
+      "type": "string"
+    },
+    "n_overlap_windows": {
+      "type": "integer"
+    },
+    "n_candidate_events": {
+      "type": "integer"
+    },
+    "n_confirmed": {
+      "type": "integer"
+    },
+    "n_streamB_words": {
+      "type": "integer"
+    },
+    "rej_no_second_label": {
+      "type": "integer"
+    },
+    "rej_no_centroid": {
+      "type": "integer"
+    },
+    "rej_too_few_words": {
+      "type": "integer"
+    },
+    "rej_voiceprint": {
+      "type": "integer"
+    },
+    "rej_no_audio": {
+      "type": "integer"
+    },
+    "n_superseded_dropped": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "media_id",
+    "n_overlap_windows",
+    "n_candidate_events",
+    "n_confirmed",
+    "n_streamB_words",
+    "rej_no_second_label",
+    "rej_no_centroid",
+    "rej_too_few_words",
+    "rej_voiceprint",
+    "rej_no_audio",
+    "n_superseded_dropped"
+  ],
+  "additionalProperties": true
+}

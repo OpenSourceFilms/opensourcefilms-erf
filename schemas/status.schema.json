@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/status/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","media_id","stages"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "media_id": {"type": "string"},
+    "stages": {
+      "type": "object",
+      "description": "key = stage letter",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["at_utc","ok","run_id"],
+        "properties": {
+          "at_utc": {"type": "string", "format": "date-time"},
+          "ok": {"type": "boolean"},
+          "run_id": {"type": "string"},
+          "tool_version": {"type": ["string","null"], "default": null},
+          "counts": {"type": ["object","null"], "default": null},
+          "error": {"type": ["string","null"], "default": null}
+        }
+      }
+    }
+  }
+}

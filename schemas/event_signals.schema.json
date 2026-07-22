@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/event_signals/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "media_id",
+    "hook_potential",
+    "quote_potential",
+    "narrative_role_suggestion",
+    "produced_by",
+    "stage_version"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "event_id": {"type": "string"},
+    "media_id": {"type": "string"},
+    "hook_potential": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 1,
+      "description": "null only when Flash call or parse failed (parse_error record)"
+    },
+    "quote_potential": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 1,
+      "description": "null only when Flash call or parse failed (parse_error record)"
+    },
+    "narrative_role_suggestion": {
+      "type": "string",
+      "enum": ["hook", "body", "quote", "b_roll"]
+    },
+    "rationale": {
+      "type": ["string", "null"],
+      "default": null,
+      "description": "<=120 char Flash justification, for audit"
+    },
+    "produced_by": {"type": "string"},
+    "stage_version": {"type": "string"}
+  }
+}

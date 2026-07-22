@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/active_speaker/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "media_id", "produced_by", "stage_version", "analyzed_fps", "segments", "turn_active_speaker"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "media_id": {"type": "string"},
+    "produced_by": {"type": "string", "description": "F2 run_id"},
+    "stage_version": {"type": "string"},
+    "analyzed_fps": {"type": "integer", "description": "internal ASD frame rate, e.g. 25"},
+    "centroid_fps": {"type": "integer", "default": 5, "description": "sampling rate of centroids within segments"},
+    "segments": {
+      "type": "array",
+      "description": "runs where a face_track is the active speaker, after smoothing+threshold",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["face_track_id", "start_ms", "end_ms", "speaking_confidence", "centroids"],
+        "properties": {
+          "face_track_id": {"type": "string", "description": "existing F0 id"},
+          "start_ms": {"type": "integer"},
+          "end_ms": {"type": "integer"},
+          "speaking_confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "mean smoothed speaking score over the segment"
+          },
+          "centroids": {
+            "type": "array",
+            "description": "~centroid_fps samples of the speaking face's normalized horizontal centre, for renderer reframe",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["t_ms", "cx"],
+              "properties": {
+                "t_ms": {"type": "integer"},
+                "cx": {"type": "number", "minimum": 0, "maximum": 1}
+              }
+            }
+          }
+        }
+      }
+    },
+    "turn_active_speaker": {
+      "type": "array",
+      "description": "per diarization turn, the dominant active face_track. EMPTY when no diarization.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["turn_index", "speaker_label", "face_track_id", "speaking_ms", "confidence"],
+        "properties": {
+          "turn_index": {"type": "integer"},
+          "speaker_label": {"type": "string"},
+          "face_track_id": {"type": ["string", "null"], "description": "null if no track dominates the turn"},
+          "speaking_ms": {"type": "integer"},
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+        }
+      }
+    }
+  }
+}

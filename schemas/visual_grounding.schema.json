@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/visual_grounding/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "media_id",
+    "footage_type",
+    "on_screen_subjects",
+    "visual_summary",
+    "orientation",
+    "keyframes_used",
+    "caption_model",
+    "produced_by",
+    "stage_version",
+    "prompt_version",
+    "model_config",
+    "raw_model_response_path"
+  ],
+  "properties": {
+    "schema_version":           { "const": "1.0.0" },
+    "media_id":                 { "type": "string" },
+    "footage_type": {
+      "type": "string",
+      "enum": [
+        "talking_head", "bts_handheld", "interview",
+        "screen_capture", "b_roll", "composited_vfx",
+        "graphics", "audio_only", "other"
+      ]
+    },
+    "setting":                  { "type": ["string", "null"], "default": null },
+    "on_screen_subjects":       { "type": "array", "items": { "type": "string" } },
+    "shot_type":                { "type": ["string", "null"], "default": null },
+    "visual_summary":           { "type": "string" },
+    "orientation": {
+      "type": ["string", "null"],
+      "enum": ["upright", "rotated_90_cw", "rotated_90_ccw", "upside_down", null],
+      "default": null
+    },
+    "keyframes_used":           { "type": "array", "items": { "type": "string" } },
+    "caption_model":            { "type": "string" },
+    "produced_by":              { "type": "string" },
+    "stage_version":            { "type": "string" },
+    "prompt_version":           { "type": "string" },
+    "model_config": {
+      "type": "object",
+      "required": ["model", "quantization"],
+      "additionalProperties": true,
+      "properties": {
+        "model":          { "type": "string" },
+        "transformers":   { "type": ["string", "null"] },
+        "torch":          { "type": ["string", "null"] },
+        "quantization":   { "type": "string", "enum": ["bf16", "int8", "awq", "none"] }
+      }
+    },
+    "raw_model_response_path":  { "type": ["string", "null"] }
+  }
+}

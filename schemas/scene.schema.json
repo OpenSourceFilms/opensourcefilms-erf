@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/scene/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","scene_id","media_id","index","start_ms","end_ms","start_frame","end_frame"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "scene_id": {"type": "string", "pattern": "^m_[0-9a-f]{12}:sc:[0-9]{4}$"},
+    "media_id": {"type": "string"},
+    "index": {"type": "integer", "minimum": 0},
+    "start_ms": {"type": "integer"},
+    "end_ms": {"type": "integer"},
+    "start_frame": {"type": "integer"},
+    "end_frame": {"type": "integer"},
+    "detector": {"type": "string", "default": "pyscenedetect-content", "description": "detector + params tag"}
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/keyframe/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","keyframe_id","media_id","scene_id","time_ms","frame","image_relpath","width","height"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "keyframe_id": {"type": "string", "pattern": "^m_[0-9a-f]{12}:kf:[0-9]+$"},
+    "media_id": {"type": "string"},
+    "scene_id": {"type": ["string","null"]},
+    "time_ms": {"type": "integer"},
+    "frame": {"type": "integer"},
+    "image_relpath": {"type": "string", "description": "under media/keyframes/{media_id}/"},
+    "thumb_relpath": {"type": ["string","null"], "default": null},
+    "width": {"type": "integer"},
+    "height": {"type": "integer"},
+    "visual_quality_score": {"type": ["number","null"], "minimum": 0, "maximum": 1, "default": null, "description": "Phase 5 hook"},
+    "person_ids": {"type": ["array","null"], "items": {"type": "string"}, "default": null, "description": "Phase 3 hook"},
+    "b_roll_flag": {"type": ["boolean","null"], "default": null, "description": "Phase 5 hook"}
+  }
+}

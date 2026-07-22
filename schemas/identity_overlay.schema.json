@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/identity_overlay/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","media_id","produced_by","stage_version","face_assignments","speaker_assignments","chunk_speaker","keyframe_persons","event_persons"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "media_id": {"type": "string"},
+    "produced_by": {"type": "string", "description": "F1 run_id"},
+    "stage_version": {"type": "string"},
+    "face_assignments": {"type": "array", "items": {"type": "object", "additionalProperties": false,
+      "required": ["face_track_id","person_id","match_score"],
+      "properties": {
+        "face_track_id": {"type": "string"},
+        "person_id": {"type": ["string","null"]},
+        "match_score": {"type": ["number","null"]},
+        "method": {"type": "string", "enum": ["gallery","manual","none"], "default": "none"}}}},
+    "speaker_assignments": {"type": "array", "items": {"type": "object", "additionalProperties": false,
+      "required": ["speaker_label","person_id","method"],
+      "properties": {
+        "speaker_label": {"type": "string"},
+        "person_id": {"type": ["string","null"]},
+        "method": {"type": "string", "enum": ["bootstrap","voice_gallery","manual","none"]},
+        "confidence": {"type": ["number","null"], "default": null},
+        "evidence": {"type": "array", "items": {"type": "string"}, "default": [], "description": "face_track_ids / voiceprint ids"}}}},
+    "chunk_speaker": {"type": "array", "items": {"type": "object", "additionalProperties": false,
+      "required": ["chunk_id","person_id"], "properties": {"chunk_id": {"type": "string"}, "person_id": {"type": ["string","null"]}}}},
+    "keyframe_persons": {"type": "array", "items": {"type": "object", "additionalProperties": false,
+      "required": ["keyframe_id","person_ids"], "properties": {"keyframe_id": {"type": "string"}, "person_ids": {"type": "array", "items": {"type": "string"}}}}},
+    "event_persons": {"type": "array", "items": {"type": "object", "additionalProperties": false,
+      "required": ["event_id","person_ids"], "properties": {"event_id": {"type": "string"}, "person_ids": {"type": "array", "items": {"type": "string"}}}}}
+  }
+}

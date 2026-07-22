@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/entity_node/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","entity_node_id","type","label"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "entity_node_id": {"type": "string"},
+    "type": {"type": "string", "enum": ["person","location","object","org","other"]},
+    "label": {"type": "string"},
+    "person_id": {"type": ["string","null"], "default": null},
+    "aliases": {"type": "array", "items": {"type": "string"}, "default": []},
+    "mention_refs": {
+      "type": "array",
+      "items": {"type": "string"},
+      "default": [],
+      "description": "chunk_id / face_track_id / detection_id refs"
+    }
+  }
+}

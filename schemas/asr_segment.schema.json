@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/asr_segment/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","segment_id","media_id","index","text","start_ms","end_ms","avg_logprob","no_speech_prob"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "segment_id": {"type": "string", "pattern": "^m_[0-9a-f]{12}:s:[0-9]{5}$"},
+    "media_id": {"type": "string"},
+    "index": {"type": "integer", "minimum": 0},
+    "text": {"type": "string"},
+    "start_ms": {"type": "integer", "minimum": 0},
+    "end_ms": {"type": "integer", "minimum": 0},
+    "avg_logprob": {"type": "number"},
+    "no_speech_prob": {"type": "number", "minimum": 0, "maximum": 1},
+    "speaker_label": {"type": ["string","null"], "default": null},
+    "speaker_person_id": {"type": ["string","null"], "default": null, "description": "Phase 3 hook"}
+  }
+}

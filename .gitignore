@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+venvs/
+.venv/
+venv/
+
+# Local tool caches / indexes
+.cache/
+.rtfm/
+.rtfm_backups/
+.rtk/
+.claude/
+.ipynb_checkpoints/
+
+# Runtime data — this repo ships pipeline code only. A real deployment's
+# catalog/media/weights/enrollment data are project-specific and must never
+# be committed here.
+catalog/
+media/
+index/
+weights/
+checkpoints/
+people/
+enroll/
+renders/
+runs/
+state/
+logs/
+logs.all/
+tmp/
+output/
+outputs/
+*.db
+*.db-journal
+
+# Claude Code settings files can carry plaintext API keys in the env block —
+# never stage/commit these or a backup/proposed variant of one.
+settings.json
+settings.json.*

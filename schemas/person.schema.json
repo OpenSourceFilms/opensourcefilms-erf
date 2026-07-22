@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/person/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","person_id","display_name","created_at_utc","face_enrolled","voice_enrolled"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "person_id": {"type": "string", "pattern": "^p_[a-z0-9_]+$"},
+    "display_name": {"type": "string"},
+    "created_at_utc": {"type": "string", "format": "date-time"},
+    "consent": {"type": "boolean", "default": true, "description": "consent on record"},
+    "face_enrolled": {"type": "boolean", "default": false},
+    "voice_enrolled": {"type": "boolean", "default": false},
+    "face_gallery_relpath": {"type": ["string","null"], "default": null},
+    "voice_gallery_relpath": {"type": ["string","null"], "default": null}
+  }
+}

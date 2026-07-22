@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/event/1.1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","event_id","media_id","start_ms","end_ms","kind"],
+  "properties": {
+    "schema_version": {"const": "1.1.0"},
+    "event_id": {"type": "string", "pattern": "^m_[0-9a-f]{12}:ev:[0-9]{4}$"},
+    "media_id": {"type": "string"},
+    "start_ms": {"type": "integer"},
+    "end_ms": {"type": "integer"},
+    "kind": {"type": "string", "enum": ["scene_event","dialogue_event","beat"]},
+    "chunk_ids": {"type": "array", "items": {"type": "string"}, "default": []},
+    "scene_ids": {"type": "array", "items": {"type": "string"}, "default": []},
+    "summary": {"type": ["string","null"], "default": null},
+    "emotional_beat": {
+      "type": ["string","null"],
+      "default": null,
+      "enum": ["setup","tension","release","comedic","emotional","action","reveal","exposition","transition",null]
+    },
+    "edit_role": {
+      "type": ["array","null"],
+      "default": null,
+      "items": {
+        "type": "string",
+        "enum": ["hook","body","b_roll","proof","quote","transition","call_to_action","exposition"]
+      },
+      "description": "Phase 3a: how this atom functions in a short-form assembly"
+    },
+    "format_fit": {
+      "type": ["array","null"],
+      "default": null,
+      "items": {"type": "string"},
+      "description": "Applicable short-form formats"
+    },
+    "publicability": {
+      "type": ["string","null"],
+      "default": null,
+      "enum": ["public","needs_review",null]
+    },
+    "person_ids": {"type": ["array","null"], "items": {"type": "string"}, "default": null},
+    "b_roll_flag": {"type": ["boolean","null"], "default": null},
+    "visual_quality_score": {"type": ["number","null"], "default": null}
+  }
+}

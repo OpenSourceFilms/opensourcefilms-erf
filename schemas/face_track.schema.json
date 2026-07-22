@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/face_track/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","face_track_id","media_id","start_ms","end_ms","embedding","person_id","match_score"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "face_track_id": {"type": "string"},
+    "media_id": {"type": "string"},
+    "start_ms": {"type": "integer"},
+    "end_ms": {"type": "integer"},
+    "keyframe_ids": {"type": "array", "items": {"type": "string"}},
+    "embedding": {
+      "type": "array",
+      "items": {"type": "number"},
+      "description": "512-d buffalo_l mean track embedding"
+    },
+    "person_id": {"type": ["string","null"], "description": "resolved or null if unmatched"},
+    "match_score": {"type": ["number","null"], "description": "cosine to matched gallery template"}
+  }
+}

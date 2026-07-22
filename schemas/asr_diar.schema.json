@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/asr_diar/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","media_id","turn_index","speaker_label","start_ms","end_ms"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "media_id": {"type": "string"},
+    "turn_index": {"type": "integer", "minimum": 0},
+    "speaker_label": {"type": "string", "description": "raw pyannote speaker label e.g. SPEAKER_00"},
+    "start_ms": {"type": "integer", "minimum": 0},
+    "end_ms": {"type": "integer", "minimum": 0}
+  }
+}

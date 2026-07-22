@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/media_manifest/1.1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","media_id","relpath","filesize_bytes","duration_ms","container","video","audio","ingested_at_utc","content_blake2b"],
+  "properties": {
+    "schema_version": {"enum": ["1.0.0","1.1.0"]},
+    "media_id": {"type": "string", "pattern": "^m_[0-9a-f]{12}$"},
+    "relpath": {"type": "string", "description": "path relative to /workspace/erf/incoming or configured source root"},
+    "filesize_bytes": {"type": "integer", "minimum": 0},
+    "duration_ms": {"type": "integer", "minimum": 0},
+    "content_blake2b": {"type": "string", "pattern": "^[0-9a-f]{32}$", "description": "first 16 bytes hex of blake2b(file) — integrity, not identity"},
+    "container": {"type": "string", "examples": ["mov","mp4","mxf"]},
+    "video": {
+      "type": "object", "additionalProperties": false,
+      "required": ["codec","width","height","fps","bit_depth"],
+      "properties": {
+        "codec": {"type": "string", "examples": ["h264","hevc","prores"]},
+        "width": {"type": "integer"},
+        "height": {"type": "integer"},
+        "fps": {"type": "number", "description": "exact frame rate, e.g. 23.976, 25, 50"},
+        "fps_rational": {"type": ["string","null"], "default": null, "description": "e.g. 24000/1001"},
+        "bit_depth": {"type": "integer", "enum": [8,10,12]},
+        "color_primaries": {"type": ["string","null"], "default": null},
+        "transfer": {"type": ["string","null"], "default": null}
+      }
+    },
+    "audio": {
+      "type": "object", "additionalProperties": false,
+      "required": ["codec","sample_rate","channels"],
+      "properties": {
+        "codec": {"type": "string"},
+        "sample_rate": {"type": "integer"},
+        "channels": {"type": "integer"}
+      }
+    },
+    "ingested_at_utc": {"type": "string", "format": "date-time"},
+    "source_note": {"type": ["string","null"], "default": null, "description": "free text: shoot day, camera, etc."},
+    "kind": {
+      "type": ["string","null"],
+      "enum": ["raw_footage","published_output","audience_text",null],
+      "default": "raw_footage",
+      "description": "source-type axis: raw camera original, a finished published edit, or audience-authored text (reserved)"
+    }
+  }
+}

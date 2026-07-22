@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/narrative_gate/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","gate_id","run_at_utc","thresholds","results","shortlist"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "gate_id": {"type": "string"},
+    "run_at_utc": {"type": "string", "format": "date-time"},
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["composite_min","coherence_min"],
+      "properties": {
+        "composite_min": {"type": "number"},
+        "coherence_min": {"type": "number"}
+      }
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["thread_id","verdict","reasons","scores"],
+        "properties": {
+          "thread_id": {"type": "string"},
+          "verdict": {"type": "string", "enum": ["PASS","FAIL"]},
+          "reasons": {"type": "array", "items": {"type": "string"}},
+          "scores": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["composite","coherence"],
+            "properties": {
+              "composite": {"type": "number"},
+              "coherence": {"type": "number"},
+              "hook": {"type": "number"},
+              "arc": {"type": "number"},
+              "quote": {"type": "number"}
+            }
+          },
+          "bp_id": {"type": ["string","null"]},
+          "n_beats": {"type": ["integer","null"]}
+        }
+      }
+    },
+    "shortlist": {"type": "array", "items": {"type": "string"}},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total","pass","fail"],
+      "properties": {
+        "total": {"type": "integer"},
+        "pass": {"type": "integer"},
+        "fail": {"type": "integer"},
+        "calibration_notes": {"type": ["string","null"]}
+      }
+    }
+  }
+}

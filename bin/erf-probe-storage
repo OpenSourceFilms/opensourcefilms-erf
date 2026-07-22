@@ -1,0 +1,177 @@
+#!/usr/bin/env python3
+"""erf-probe-storage — Phase 0 MooseFS capability probe (G-STORAGE gate).
+
+Tests on /workspace/erf/state/:
+  1. Atomic rename durability (HARD FAIL if not durable)
+  2. fsync behaviour
+  3. flock / fcntl exclusive lock
+  4. mmap read/write (determines SQLite journal_mode recommendation)
+
+Writes result to state/storage_probe.json.
+Exit 0 = all critical tests pass. Exit 1 = atomic rename not durable (fatal).
+"""
+from __future__ import annotations
+
+import fcntl
+import json
+import mmap
+import os
+import sys
+import tempfile
+import time
+from pathlib import Path
+from datetime import datetime, timezone
+
+PROBE_DIR = Path("/workspace/erf/state")
+OUT_PATH  = PROBE_DIR / "storage_probe.json"
+
+results: dict = {
+    "probed_at_utc": datetime.now(timezone.utc).isoformat(),
+    "probe_dir": str(PROBE_DIR),
+    "tests": {},
+    "recommendation": {},
+}
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+# ── 1. Atomic rename ──────────────────────────────────────────────────────────
+
+def test_atomic_rename() -> dict:
+    sentinel = b"PROBE_RENAME_OK\n"
+    target = PROBE_DIR / ".probe_rename_target"
+    fd, tmp = tempfile.mkstemp(dir=PROBE_DIR, prefix=".probe_tmp_")
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(sentinel)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.rename(tmp, target)
+        readback = target.read_bytes()
+        ok = readback == sentinel
+        return {"ok": ok, "detail": "rename+readback match" if ok else f"readback mismatch: {readback!r}"}
+    except Exception as e:
+        return {"ok": False, "detail": str(e)}
+    finally:
+        target.unlink(missing_ok=True)
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+
+
+# ── 2. fsync ──────────────────────────────────────────────────────────────────
+
+def test_fsync() -> dict:
+    probe_file = PROBE_DIR / ".probe_fsync"
+    try:
+        with open(probe_file, "wb") as fh:
+            fh.write(b"FSYNC_TEST\n")
+            fh.flush()
+            t0 = time.perf_counter()
+            os.fsync(fh.fileno())
+            elapsed_ms = (time.perf_counter() - t0) * 1000
+        probe_file.unlink(missing_ok=True)
+        return {"ok": True, "fsync_ms": round(elapsed_ms, 2)}
+    except Exception as e:
+        probe_file.unlink(missing_ok=True)
+        return {"ok": False, "detail": str(e)}
+
+
+# ── 3. flock / fcntl ─────────────────────────────────────────────────────────
+
+def test_flock() -> dict:
+    probe_file = PROBE_DIR / ".probe_flock"
+    try:
+        with open(probe_file, "wb") as fh:
+            fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            fh.write(b"LOCKED\n")
+            fh.flush()
+            fcntl.flock(fh, fcntl.LOCK_UN)
+        probe_file.unlink(missing_ok=True)
+        return {"ok": True, "detail": "flock LOCK_EX acquired and released"}
+    except Exception as e:
+        probe_file.unlink(missing_ok=True)
+        return {"ok": False, "detail": str(e)}
+
+
+# ── 4. mmap ───────────────────────────────────────────────────────────────────
+
+def test_mmap() -> dict:
+    probe_file = PROBE_DIR / ".probe_mmap"
+    payload = b"MMAP_PROBE_DATA_____"
+    try:
+        with open(probe_file, "w+b") as fh:
+            fh.write(payload)
+            fh.flush()
+            os.fsync(fh.fileno())
+            fh.seek(0)
+            mm = mmap.mmap(fh.fileno(), 0, access=mmap.ACCESS_READ)
+            try:
+                readback = mm.read(len(payload))
+                ok = readback == payload
+            finally:
+                mm.close()
+        probe_file.unlink(missing_ok=True)
+        return {"ok": ok, "detail": "mmap read matches write" if ok else f"mismatch: {readback!r}"}
+    except Exception as e:
+        probe_file.unlink(missing_ok=True)
+        return {"ok": False, "detail": str(e), "note": "mmap failed — TRUNCATE journal_mode required"}
+
+
+# ── Run all probes ─────────────────────────────────────────────────────────────
+
+PROBE_DIR.mkdir(parents=True, exist_ok=True)
+
+print("Running storage probes on MooseFS /workspace/erf/state/ ...")
+
+r_rename = test_atomic_rename()
+results["tests"]["atomic_rename"] = r_rename
+print(f"  atomic_rename: {'PASS' if r_rename['ok'] else 'FAIL'} — {r_rename}")
+
+r_fsync = test_fsync()
+results["tests"]["fsync"] = r_fsync
+print(f"  fsync:         {'PASS' if r_fsync['ok'] else 'FAIL'} — {r_fsync}")
+
+r_flock = test_flock()
+results["tests"]["flock"] = r_flock
+print(f"  flock:         {'PASS' if r_flock['ok'] else 'FAIL'} — {r_flock}")
+
+r_mmap = test_mmap()
+results["tests"]["mmap"] = r_mmap
+print(f"  mmap:          {'PASS' if r_mmap['ok'] else 'FAIL'} — {r_mmap}")
+
+# ── Derive recommendations ────────────────────────────────────────────────────
+
+results["recommendation"]["sqlite_journal_mode"] = (
+    "WAL" if r_mmap["ok"] else "TRUNCATE"
+)
+results["recommendation"]["lancedb_rename_safe"] = r_rename["ok"]
+results["recommendation"]["note"] = (
+    "mmap unreliable on this mount — keep SQLite journal_mode=TRUNCATE (default)"
+    if not r_mmap["ok"]
+    else "mmap appears functional; WAL is possible but TRUNCATE is the safer default for MooseFS"
+)
+
+# ── Write result ──────────────────────────────────────────────────────────────
+
+out_bytes = json.dumps(results, indent=2).encode("utf-8")
+fd, tmp = tempfile.mkstemp(dir=PROBE_DIR, prefix=".probe_out_")
+with os.fdopen(fd, "wb") as fh:
+    fh.write(out_bytes)
+    fh.flush()
+    os.fsync(fh.fileno())
+os.rename(tmp, OUT_PATH)
+print(f"\nProbe result written to {OUT_PATH}")
+
+# ── Gate: hard-fail if atomic rename is not durable ──────────────────────────
+
+if not r_rename["ok"]:
+    print("\nFATAL: atomic rename is NOT durable on this filesystem.", file=sys.stderr)
+    print("ERF requires POSIX atomic rename. Cannot proceed.", file=sys.stderr)
+    sys.exit(1)
+
+print("G-STORAGE gate: PASS")
+sys.exit(0)

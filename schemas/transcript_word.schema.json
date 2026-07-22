@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://erf.local/schemas/transcript_word.v2.0.0.schema.json",
+  "title": "Transcript Word",
+  "description": "A word token in the final transcript, with optional linkage to source event and stream.",
+  "type": "object",
+  "properties": {
+    "word_index": {
+      "type": "integer"
+    },
+    "text": {
+      "type": "string"
+    },
+    "start_ms": {
+      "type": "integer"
+    },
+    "end_ms": {
+      "type": "integer"
+    },
+    "speaker_label": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "person_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "stable_unknown_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source": {
+      "type": "string"
+    },
+    "event_id": {
+      "type": "string"
+    },
+    "stream": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B"
+      ]
+    },
+    "sentence_index": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "word_index",
+    "text",
+    "start_ms",
+    "end_ms",
+    "sentence_index"
+  ],
+  "additionalProperties": true
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/chunk/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","chunk_id","media_id","start_ms","end_ms","text","word_ids","speaker_label"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "chunk_id": {"type": "string", "pattern": "^m_[0-9a-f]{12}:c:[0-9]+-[0-9]+$"},
+    "media_id": {"type": "string"},
+    "start_ms": {"type": "integer", "minimum": 0},
+    "end_ms": {"type": "integer", "minimum": 0},
+    "text": {"type": "string"},
+    "word_ids": {"type": "array", "items": {"type": "string"}},
+    "speaker_label": {"type": ["string","null"]},
+    "speaker_person_id": {"type": ["string","null"], "default": null, "description": "Phase 3 hook"},
+    "emotional_beat": {
+      "type": ["string","null"], "default": null,
+      "enum": ["setup","tension","release","comedic","emotional","action","reveal","exposition","transition", null],
+      "description": "Phase 5 hook"
+    },
+    "b_roll_flag": {"type": ["boolean","null"], "default": null, "description": "Phase 5 hook"}
+  }
+}

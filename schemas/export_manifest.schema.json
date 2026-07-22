@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/export_manifest/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","export_id","created_at_utc","query","format","clips","output_relpath"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "export_id": {"type": "string"},
+    "created_at_utc": {"type": "string", "format": "date-time"},
+    "query": {"type": ["string","null"], "description": "originating query, if any"},
+    "format": {"type": "string", "enum": ["fcpxml","edl","otio"]},
+    "frame_rate": {"type": "number"},
+    "clips": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["media_id","in_frame","out_frame"],
+        "properties": {
+          "media_id": {"type": "string"},
+          "source_relpath": {"type": "string"},
+          "in_frame": {"type": "integer"},
+          "out_frame": {"type": "integer"},
+          "label": {"type": ["string","null"], "default": null}
+        }
+      }
+    },
+    "output_relpath": {"type": "string"},
+    "output_mp4_relpath": {"type": ["string", "null"], "default": null}
+  }
+}

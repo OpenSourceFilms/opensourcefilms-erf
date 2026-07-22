@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://erf.local/schemas/parallel_stream_event.v2.0.0.schema.json",
+  "title": "Parallel Stream Event",
+  "description": "An event from one of the two parallel streams (A or B).",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string"
+    },
+    "media_id": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "stream": {
+      "const": "B"
+    },
+    "start_ms": {
+      "type": "integer"
+    },
+    "end_ms": {
+      "type": "integer"
+    },
+    "text": {
+      "type": "string"
+    },
+    "speaker_track_id": {
+      "type": "string"
+    },
+    "diar_label": {
+      "type": "string"
+    },
+    "person_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "stable_unknown_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "overlap_group_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "n_words": {
+      "type": "integer"
+    },
+    "words": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/word"
+      }
+    },
+    "confidence": {
+      "type": "object",
+      "properties": {
+        "asr": {
+          "type": "number"
+        },
+        "speaker": {
+          "type": "number"
+        },
+        "identity": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "asr",
+        "speaker",
+        "identity"
+      ],
+      "additionalProperties": true
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "voiceprint_target": {
+          "type": "string"
+        },
+        "voiceprint_cos": {
+          "type": "number"
+        },
+        "voiceprint_dominant": {
+          "type": "string"
+        },
+        "voiceprint_dom_cos": {
+          "type": "number"
+        },
+        "dominant_stream_label": {
+          "type": "string"
+        },
+        "diar_speakers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "voiceprint_target",
+        "voiceprint_cos",
+        "voiceprint_dominant",
+        "voiceprint_dom_cos",
+        "dominant_stream_label",
+        "diar_speakers"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "event_id",
+    "media_id",
+    "source",
+    "stream",
+    "start_ms",
+    "end_ms",
+    "text",
+    "speaker_track_id",
+    "diar_label",
+    "n_words",
+    "words"
+  ],
+  "additionalProperties": true,
+  "$defs": {
+    "word": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "start_ms": {
+          "type": "integer"
+        },
+        "end_ms": {
+          "type": "integer"
+        },
+        "prob": {
+          "type": "number"
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "start_ms",
+        "end_ms"
+      ],
+      "additionalProperties": true
+    }
+  }
+}

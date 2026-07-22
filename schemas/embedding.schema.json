@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/embedding/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","embedding_id","source_id","source_type","modality","model_tag","dim","vector","normalized"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "embedding_id": {"type": "string"},
+    "source_id": {"type": "string", "description": "chunk_id or keyframe_id"},
+    "source_type": {"type": "string", "enum": ["chunk","keyframe"]},
+    "media_id": {"type": "string"},
+    "modality": {"type": "string", "enum": ["text","visual"]},
+    "model_tag": {"type": "string", "enum": ["qwen3-8b","qwen3vl-2b"]},
+    "dim": {"type": "integer", "enum": [4096, 2048]},
+    "vector": {"type": "array", "items": {"type": "number"}},
+    "normalized": {"type": "boolean", "description": "true if L2-normalized at write time"}
+  },
+  "if": {"properties": {"modality": {"const": "text"}}, "required": ["modality"]},
+  "then": {
+    "properties": {
+      "model_tag": {"const": "qwen3-8b"},
+      "dim": {"const": 4096}
+    }
+  },
+  "else": {
+    "if": {"properties": {"modality": {"const": "visual"}}, "required": ["modality"]},
+    "then": {
+      "properties": {
+        "model_tag": {"const": "qwen3vl-2b"},
+        "dim": {"const": 2048}
+      }
+    }
+  }
+}

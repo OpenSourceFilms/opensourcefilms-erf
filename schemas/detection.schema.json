@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/detection/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","detection_id","keyframe_id","media_id","label","score","bbox","detector"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "detection_id": {"type": "string"},
+    "keyframe_id": {"type": "string"},
+    "media_id": {"type": "string"},
+    "label": {"type": "string", "description": "open-vocab text label (GroundingDINO) or class name"},
+    "score": {"type": "number", "minimum": 0, "maximum": 1},
+    "bbox": {
+      "type": "array",
+      "items": {"type": "number"},
+      "minItems": 4, "maxItems": 4,
+      "description": "[x,y,w,h] normalized 0-1"
+    },
+    "detector": {"type": "string", "examples": ["groundingdino"]},
+    "is_face": {"type": "boolean", "default": false},
+    "face_track_id": {"type": ["string","null"], "default": null}
+  }
+}

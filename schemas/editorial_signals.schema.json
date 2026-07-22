@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/editorial_signals/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "media_id", "editorial_job_id", "source_evidence_hash",
+    "produced_by", "model", "mode", "stage_version", "created_at_utc",
+    "clip_level", "sentences"
+  ],
+  "$defs": {
+    "function": {
+      "type": "string",
+      "enum": [
+        "HOOK", "CONTEXT", "DESIRE", "OBSTACLE", "STAKES", "FAILED_ATTEMPT",
+        "DISCOVERY", "DECISION", "ESCALATION", "REVERSAL", "JOKE", "REVEAL",
+        "CRAFT_INSIGHT", "PAYOFF", "BUTTON", "B_ROLL_SUPPORT", "SCRAPPY_SOLUTION",
+        "INDIE_CONSTRAINT", "VFX_PROBLEM", "PRACTICAL_TEST", "PERFORMANCE_DISCOVERY",
+        "GEAR_HACK", "LOCATION_PROBLEM", "TEAM_DYNAMIC", "DANGEROUS_IDEA_BUT_SAFE",
+        "OPEN_SOURCE_METHOD"
+      ]
+    },
+    "tension": {
+      "type": "string",
+      "enum": [
+        "ambition_vs_budget", "safety_vs_spectacle", "professional_standard_vs_homemade",
+        "beautiful_idea_vs_ugly_reality", "simple_plan_vs_unexpected_constraint",
+        "ai_vfx_promise_vs_practical_mess", "serious_film_vs_absurd_method", "control_vs_chaos"
+      ]
+    },
+    "archetype": {
+      "type": "string",
+      "enum": [
+        "THIS_SHOULD_NOT_WORK", "THE_INVISIBLE_PROBLEM", "THE_SAFETY_PARADOX",
+        "THE_PROFESSIONAL_VERSION_COSTS_50K", "THE_SHOT_GOT_BIGGER",
+        "THE_DUMB_LOOKING_THING_IS_THE_SERIOUS_THING"
+      ]
+    }
+  },
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "media_id": {"type": "string"},
+    "editorial_job_id": {"type": "string", "description": "this LABEL job's own id (NOT a story-batch run_id) — §8.3"},
+    "source_evidence_hash": {"type": "string", "description": "sha256 of the evidence package fed to label_clip; staleness key"},
+    "produced_by": {"type": "string"},
+    "model": {"type": "string", "description": "e.g. deepseek-v4-flash"},
+    "mode": {"type": "string", "enum": ["thinking", "non-thinking"]},
+    "stage_version": {"type": "string"},
+    "created_at_utc": {"type": "string", "format": "date-time"},
+    "parse_error": {"type": ["string", "null"], "default": null, "description": "non-null = Flash call/parse failed; clip_level/sentences then empty"},
+    "clip_level": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "story_forces": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "want": {"type": ["string", "null"]},
+            "obstacle": {"type": ["string", "null"]},
+            "decision": {"type": ["string", "null"]},
+            "turn": {"type": ["string", "null"]},
+            "payoff": {"type": ["string", "null"]}
+          }
+        },
+        "central_tension": {
+          "type": ["string", "null"],
+          "enum": [
+            "ambition_vs_budget", "safety_vs_spectacle", "professional_standard_vs_homemade",
+            "beautiful_idea_vs_ugly_reality", "simple_plan_vs_unexpected_constraint",
+            "ai_vfx_promise_vs_practical_mess", "serious_film_vs_absurd_method",
+            "control_vs_chaos", null
+          ]
+        },
+        "archetype_candidates": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/archetype"}
+        }
+      }
+    },
+    "sentences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sentence_index", "functions", "tension_tags", "chain_affordances", "quote_completeness"],
+        "properties": {
+          "sentence_index": {"type": "integer", "minimum": 0},
+          "functions": {"type": "array", "items": {"$ref": "#/$defs/function"}},
+          "tension_tags": {"type": "array", "items": {"$ref": "#/$defs/tension"}},
+          "chain_affordances": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["can_start_story", "can_escalate_story", "can_payoff_story", "needs_followup"],
+            "properties": {
+              "can_start_story": {"type": "boolean"},
+              "can_escalate_story": {"type": "boolean"},
+              "can_payoff_story": {"type": "boolean"},
+              "needs_followup": {"type": "boolean"}
+            }
+          },
+          "quote_completeness": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["complete_thought", "requires_previous", "requires_next"],
+            "properties": {
+              "complete_thought": {"type": "boolean"},
+              "requires_previous": {"type": "boolean"},
+              "requires_next": {"type": "boolean"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

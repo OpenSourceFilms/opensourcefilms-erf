@@ -1,0 +1,258 @@
+#!/usr/bin/env python3
+"""erf-eval — Wave 0 eval harness: golden queries, metrics, M4 gate."""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_ROOT / "src"))
+
+from erf.eval import (
+    add_exemplar,
+    add_query,
+    capture_baseline,
+    gate_flip,
+    init_stage_versions,
+    load_exemplars,
+    load_queries,
+    load_stage_versions,
+    prune_runs,
+    run_eval,
+    save_queries,
+    status,
+)
+
+CONFIG_PATH = str(_ROOT / "state" / "config.toml")
+
+
+def cmd_init(args: argparse.Namespace) -> int:
+    init_stage_versions(config_path=CONFIG_PATH)
+    sv = load_stage_versions(Path(_ROOT / "state"))
+    print("stage_versions.json initialized.")
+    for stage, info in sv.get("stages", {}).items():
+        print(f"  {stage}: model={info['model_tag']}  fingerprint={info['invocation_fingerprint'][:12]}...")
+    return 0
+
+
+def cmd_list(args: argparse.Namespace) -> int:
+    state = _ROOT / "state"
+    qs = load_queries(state).get("queries", [])
+    exs = load_exemplars(state).get("exemplars", [])
+    print(f"Queries ({len(qs)}):")
+    for q in qs:
+        mode = q.get("modality", "text")
+        k = q.get("min_recall_k", 5)
+        n_clips = len(q.get("expected_clips", []))
+        vid = "✓" if q.get("stored_query_vector") else "✗"
+        print(f"  [{q['eval_query_id']}] [{mode}] k={k} clips={n_clips} vec={vid}  {q['query'][:70]}")
+    print(f"\nExemplars ({len(exs)}):")
+    for ex in exs:
+        beats = len(ex.get("beat_plan", {}).get("beats", []))
+        print(f"  [{ex['exemplar_id']}] {ex['name']!r}  beats={beats}  review={ex.get('review_id', '?')}")
+    return 0
+
+
+def cmd_add_query(args: argparse.Namespace) -> int:
+    expected_ids: list[str] = list(args.expected_chunk or [])
+    qid = add_query(
+        args.query,
+        args.modality,
+        expected_ids,
+        min_recall_k=args.k,
+        added_by=args.by,
+        note=args.note or "",
+        config_path=CONFIG_PATH,
+    )
+    print(f"Added query: {qid}")
+    return 0
+
+
+def cmd_add_exemplar(args: argparse.Namespace) -> int:
+    import sqlite3 as _sq
+    erf_db = _ROOT / "state" / "erf.db"
+    conn = _sq.connect(str(erf_db))
+    row = conn.execute(
+        "SELECT beat_plan_id FROM review_queue WHERE review_id = ?", (args.review_id,)
+    ).fetchone()
+    conn.close()
+    if not row:
+        print(f"ERROR: review_id {args.review_id!r} not found in review_queue", file=sys.stderr)
+        return 1
+    bp_id = row[0]
+    bp_path = _ROOT / "catalog" / "beat_plans" / f"{bp_id}.jsonl"
+    if not bp_path.exists():
+        print(f"ERROR: beat_plan file not found: {bp_path}", file=sys.stderr)
+        return 1
+    lines = [json.loads(l) for l in bp_path.read_text().strip().splitlines() if l.strip()]
+    beat_plan = lines[-1]
+    ex_id = add_exemplar(
+        args.review_id,
+        args.name,
+        beat_plan,
+        added_by=args.by,
+        notes=args.notes or "",
+        config_path=CONFIG_PATH,
+    )
+    print(f"Added exemplar: {ex_id}  (beat_plan_id={bp_id}, {len(beat_plan.get('beats', []))} beats)")
+    return 0
+
+
+def cmd_baseline(args: argparse.Namespace) -> int:
+    vf = getattr(args, "vram_free", False)
+    print(f"Capturing baseline for stage {args.stage} (vram_free={vf}) …")
+    run = capture_baseline(args.stage, vram_free=vf, config_path=CONFIG_PATH)
+    agg = run.get("aggregate", {})
+    print(f"Baseline captured: {run['eval_run_id']}")
+    print(f"  mean_recall_at_k = {agg.get('mean_recall_at_k')}")
+    print(f"  mean_mrr         = {agg.get('mean_mrr')}")
+    print(f"  exemplar_score   = {agg.get('median_exemplar_beat_score')}")
+    return 0
+
+
+def cmd_run(args: argparse.Namespace) -> int:
+    print(f"Running eval for stage {args.stage} (vram_free={args.vram_free}) …")
+    run = run_eval(args.stage, run_type="candidate", vram_free=args.vram_free, config_path=CONFIG_PATH)
+    agg = run.get("aggregate", {})
+    print(f"Eval run: {run['eval_run_id']}")
+    print(f"  mean_recall_at_k = {agg.get('mean_recall_at_k')}")
+    print(f"  mean_mrr         = {agg.get('mean_mrr')}")
+    print(f"  exemplar_score   = {agg.get('median_exemplar_beat_score')}")
+    return 0
+
+
+def cmd_gate_flip(args: argparse.Namespace) -> int:
+    print(f"Gate-flip: stage={args.stage}  new_model={args.model_tag}")
+    result = gate_flip(args.stage, args.model_tag, config_path=CONFIG_PATH)
+    verdict = result["verdict"]
+    run_id = result.get("eval_run_id", "?")
+    if verdict == "pass":
+        print(f"PASS  {run_id}  — M4 pointer advanced to {args.model_tag}")
+        return 0
+    else:
+        flags = result.get("flags", [])
+        print(f"FAIL  {run_id}  — regression detected, model NOT flipped")
+        for f in flags:
+            print(f"  ↳ {f}")
+        return 2
+
+
+def cmd_status(args: argparse.Namespace) -> int:
+    s = status(config_path=CONFIG_PATH)
+    print(f"Queries: {s['n_queries']}   Exemplars: {s['n_exemplars']}")
+    print("Stages:")
+    for stage, info in s.get("stage_versions", {}).items():
+        baseline_id = s["baselines"].get(stage, "none")
+        print(f"  {stage}: model={info.get('model_tag','?')}  "
+              f"eval_verdict={info.get('eval_verdict','?')}  "
+              f"baseline={baseline_id or 'none'}")
+    return 0
+
+
+def cmd_prune(args: argparse.Namespace) -> int:
+    n = prune_runs(
+        stage_tag=args.stage or None,
+        keep=args.keep,
+        config_path=CONFIG_PATH,
+    )
+    print(f"Pruned {n} run(s).")
+    return 0
+
+
+def cmd_refresh_vectors(args: argparse.Namespace) -> int:
+    """Re-embed all stored_query_vector entries using current invocation."""
+    from erf.eval import _load_config, _state
+    from erf.query import embed_query, embed_visual_query
+
+    cfg = _load_config(CONFIG_PATH)
+    state = _state(cfg)
+    data = load_queries(state)
+    queries = data.get("queries", [])
+    updated = 0
+    for q in queries:
+        try:
+            if q.get("modality") == "visual":
+                vec = embed_visual_query(q["query"], state)
+                inv = json.loads((state / "embed_visual_invocation.json").read_text())
+            else:
+                vec = embed_query(q["query"], state)
+                inv = json.loads((state / "embed_text_invocation.json").read_text())
+            q["stored_query_vector"] = vec
+            q["stored_vector_model_tag"] = inv["model_tag"]
+            from erf.eval import _now
+            q["stored_vector_at_utc"] = _now()
+            updated += 1
+        except Exception as e:
+            print(f"  WARN {q['eval_query_id']}: {e}", file=sys.stderr)
+    save_queries(state, data)
+    print(f"Refreshed vectors for {updated}/{len(queries)} queries.")
+    return 0
+
+
+def main() -> None:
+    p = argparse.ArgumentParser(prog="erf-eval", description="ERF eval harness")
+    sub = p.add_subparsers(dest="cmd", required=True)
+
+    sub.add_parser("init", help="Initialize stage_versions.json")
+
+    sub.add_parser("list", help="List queries and exemplars")
+
+    aq = sub.add_parser("add-query", help="Add a golden query")
+    aq.add_argument("query", help="Query text")
+    aq.add_argument("--modality", choices=["text", "visual"], default="text")
+    aq.add_argument("--expected-chunk", action="append", dest="expected_chunk", metavar="CHUNK_ID",
+                    help="Expected chunk_id (or keyframe_id for visual); repeat for multiple")
+    aq.add_argument("--k", type=int, default=5, help="min_recall_k (default: 5)")
+    aq.add_argument("--by", default="operator")
+    aq.add_argument("--note", default="")
+
+    ae = sub.add_parser("add-exemplar", help="Add a golden exemplar from an approved review")
+    ae.add_argument("--review-id", required=True, dest="review_id",
+                    help="review_queue review_id (beat_plan loaded automatically)")
+    ae.add_argument("--name", required=True)
+    ae.add_argument("--by", default="operator")
+    ae.add_argument("--notes", default="")
+
+    bl = sub.add_parser("baseline", help="Capture baseline for a stage")
+    bl.add_argument("--stage", required=True)
+    bl.add_argument("--vram-free", action="store_true", dest="vram_free",
+                    help="Use stored_query_vector (no model load — safe right after add-query)")
+
+    rn = sub.add_parser("run", help="Run eval (no gate flip)")
+    rn.add_argument("--stage", required=True)
+    rn.add_argument("--vram-free", action="store_true", dest="vram_free",
+                    help="Use stored vectors only (no model inference)")
+
+    gf = sub.add_parser("gate-flip", help="Eval + advance M4 pointer if passing")
+    gf.add_argument("--stage", required=True)
+    gf.add_argument("--model-tag", required=True, dest="model_tag", help="New model tag to activate on pass")
+
+    sub.add_parser("status", help="Show current eval state")
+
+    pr = sub.add_parser("prune", help="Prune old run files")
+    pr.add_argument("--stage", default="", help="Limit to specific stage (optional)")
+    pr.add_argument("--keep", type=int, default=10)
+
+    rv = sub.add_parser("refresh-vectors", help="Re-embed all stored_query_vector entries with current active model")
+    rv.add_argument("--stage", default="", help="Limit to queries for a specific stage (B1 or B4)")
+
+    args = p.parse_args()
+    dispatch = {
+        "init": cmd_init,
+        "list": cmd_list,
+        "add-query": cmd_add_query,
+        "add-exemplar": cmd_add_exemplar,
+        "baseline": cmd_baseline,
+        "run": cmd_run,
+        "gate-flip": cmd_gate_flip,
+        "status": cmd_status,
+        "prune": cmd_prune,
+        "refresh-vectors": cmd_refresh_vectors,
+    }
+    sys.exit(dispatch[args.cmd](args))
+
+
+if __name__ == "__main__":
+    main()

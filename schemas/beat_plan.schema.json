@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/beat_plan/1.3.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","bp_id","created_at_utc","topic","format_fit","duration_target_s","beats"],
+  "properties": {
+    "schema_version": {"enum": ["1.0.0", "1.1.0", "1.2.0", "1.3.0"]},
+    "bp_id": {"type": "string", "description": "bp_<YYYYMMDDTHHMMSSZ>_<6hex>"},
+    "created_at_utc": {"type": "string", "format": "date-time"},
+    "revision": {"type": "integer", "default": 0},
+    "supersedes_revision": {"type": ["integer","null"], "default": null},
+    "topic": {"type": "string"},
+    "format_fit": {"type": "string", "enum": ["tiktok","reels","youtube_shorts","longform"]},
+    "duration_target_s": {"type": "integer", "minimum": 1},
+    "beats": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["beat_index","chunk_id","media_id","in_ms","out_ms","edit_role"],
+        "properties": {
+          "beat_index": {"type": "integer", "minimum": 0},
+          "chunk_id": {"type": "string"},
+          "media_id": {"type": "string"},
+          "in_ms": {"type": "integer", "minimum": 0},
+          "out_ms": {"type": "integer", "minimum": 0},
+          "edit_role": {"type": "string", "enum": ["hook","body","b_roll","proof","quote","transition","call_to_action","exposition"]},
+          "note": {"type": ["string","null"], "default": null, "description": "LLM selection rationale — why this atom was chosen"},
+          "hook_score": {"type": ["number","null"], "default": null},
+          "quote_score": {"type": ["number","null"], "default": null},
+          "proof_score": {"type": ["number","null"], "default": null},
+          "suggested_padding_ms": {"type": ["integer","null"], "default": null},
+          "duration_s": {"type": ["number","null"], "default": null},
+          "b_roll_candidates": {
+            "type": ["array","null"],
+            "default": null,
+            "description": "Top visual b-roll candidates ranked by combined_score (similarity × aesthetic)",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["keyframe_id","media_id","time_ms","similarity_score","combined_score"],
+              "properties": {
+                "keyframe_id": {"type": "string"},
+                "media_id": {"type": "string"},
+                "time_ms": {"type": "integer", "minimum": 0},
+                "similarity_score": {"type": "number", "minimum": 0, "maximum": 1},
+                "aesthetic_score": {"type": ["number","null"], "minimum": 0, "maximum": 1},
+                "combined_score": {"type": "number", "minimum": 0, "maximum": 1},
+                "thumb_url": {"type": ["string","null"], "default": null}
+              }
+            }
+          },
+          "b_roll_selected": {
+            "type": ["string","null"],
+            "default": null,
+            "description": "keyframe_id of the b-roll candidate inserted during assembly render"
+          },
+          "broll": {
+            "type": ["object","null"],
+            "default": null,
+            "description": "Narrative-authored b-roll instruction (§3 Pass 2). enabled=false suppresses renderer auto-insert; enabled=true+keyframe_id forces that candidate; absent=passive.",
+            "additionalProperties": false,
+            "required": ["enabled"],
+            "properties": {
+              "enabled": {"type": "boolean"},
+              "keyframe_id": {"type": ["string","null"], "default": null},
+              "reason": {"type": ["string","null"], "default": null}
+            }
+          }
+        }
+      }
+    },
+    "total_duration_s": {"type": ["number","null"], "default": null},
+    "assembler_note": {"type": ["string","null"], "default": null},
+    "template_id": {"type": ["string","null"], "default": null, "description": "short_template tmpl_<12hex> that generated this plan, or null"}
+  }
+}

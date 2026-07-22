@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/narrative_brief/1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","thread_id","title","logline","emotional_journey","hook","beats","target_duration_s"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "thread_id": {"type": "string"},
+    "title": {"type": "string"},
+    "logline": {"type": "string", "description": "one sentence: the story"},
+    "emotional_journey": {"type": "string"},
+    "hook": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["intent"],
+      "properties": {
+        "intent": {"type": "string"},
+        "seed_event_id": {"type": ["string","null"], "default": null}
+      }
+    },
+    "punchline_or_reveal": {"type": ["string","null"], "default": null},
+    "beats": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["beat_index","role","emotional_function","intent","wants_broll"],
+        "properties": {
+          "beat_index": {"type": "integer"},
+          "role": {"type": "string", "enum": ["hook","setup","body","tension","reveal","payoff","quote","cta","transition"]},
+          "emotional_function": {"type": "string"},
+          "intent": {"type": "string", "description": "what this beat must accomplish"},
+          "candidate_event_ids": {"type": "array", "items": {"type": "string"}, "default": []},
+          "wants_broll": {"type": "boolean"},
+          "broll_intent": {"type": ["string","null"], "default": null, "description": "visual texture if wants_broll"}
+        }
+      }
+    },
+    "target_duration_s": {"type": "number"}
+  }
+}

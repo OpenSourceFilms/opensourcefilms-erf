@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "erf://schemas/quality/1.4.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "media_id", "keyframe_id"],
+  "properties": {
+    "schema_version": {"enum": ["1.4.0"]},
+    "media_id": {"type": "string"},
+    "keyframe_id": {"type": ["string", "null"]},
+    "blur": {"type": ["number", "null"], "description": "Variance of Laplacian; higher = sharper"},
+    "brightness": {"type": ["number", "null"], "minimum": 0, "maximum": 255},
+    "contrast": {"type": ["number", "null"], "description": "Std dev of luminance channel"},
+    "saturation": {"type": ["number", "null"], "description": "Mean saturation (HSV S channel)"},
+    "noise_ratio": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "motion_energy": {"type": ["number", "null"], "minimum": 0, "description": "Mean absolute frame diff"},
+    "camera_shake": {"type": ["number", "null"], "minimum": 0, "description": "Optical flow magnitude variance"},
+    "b_roll_heuristic": {"type": ["boolean", "null"]},
+    "palette": {
+      "type": ["array", "null"],
+      "description": "Top-5 dominant hex colours",
+      "items": {"type": "string", "pattern": "^#[0-9a-f]{6}$"},
+      "maxItems": 5
+    },
+    "speech_clarity": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "silence_ratio": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "clipping_ratio": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "audio_music_prob": {"type": ["number", "null"], "minimum": 0, "maximum": 1, "description": "CNN14 music probability (AudioSet index 137)"},
+    "audio_speech_prob": {"type": ["number", "null"], "minimum": 0, "maximum": 1, "description": "CNN14 speech probability (AudioSet index 0)"},
+    "audio_top_class": {"type": ["string", "null"], "description": "Top AudioSet class label from CNN14"},
+    "audio_classifier_model": {"type": ["string", "null"], "description": "Classifier model tag, e.g. panns-cnn14"},
+    "phash": {"type": ["string", "null"], "description": "Perceptual hash hex string"},
+    "phash_distance_prev": {"type": ["integer", "null"], "minimum": 0, "description": "Hamming distance to previous keyframe phash"},
+    "is_near_duplicate": {"type": "boolean", "description": "True if phash_distance_prev < 10"},
+    "aesthetic_score": {"type": ["number", "null"], "minimum": 0, "maximum": 1, "description": "CLIP-based aesthetic quality score; 0=poor 1=best; null for audio-only records"},
+    "best_frame": {"type": ["boolean", "null"], "description": "True on highest aesthetic_score keyframe per media; null for audio-only records"}
+  }
+}

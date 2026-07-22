@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://erf.local/schemas/speech_event_v2.v2.0.0.schema.json",
+  "title": "Speech Event v2",
+  "description": "A speech event record, with optional adjudication added later.",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string"
+    },
+    "media_id": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "stream": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B"
+      ]
+    },
+    "start_ms": {
+      "type": "integer"
+    },
+    "end_ms": {
+      "type": "integer"
+    },
+    "text": {
+      "type": "string"
+    },
+    "speaker_track_id": {
+      "type": "string"
+    },
+    "diar_label": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "person_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "stable_unknown_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "overlap_group_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "n_words": {
+      "type": "integer"
+    },
+    "words": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/word"
+      }
+    },
+    "confidence": {
+      "type": "object",
+      "properties": {
+        "asr": {
+          "type": "number"
+        },
+        "speaker": {
+          "type": "number"
+        },
+        "identity": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "contents vary by source: canonical_asr / community1_* / voiceprint_* / smoothed"
+    },
+    "adjudication": {}
+  },
+  "required": [
+    "event_id",
+    "media_id",
+    "source",
+    "start_ms",
+    "end_ms",
+    "text",
+    "speaker_track_id",
+    "n_words",
+    "words"
+  ],
+  "additionalProperties": true,
+  "$defs": {
+    "word": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "start_ms": {
+          "type": "integer"
+        },
+        "end_ms": {
+          "type": "integer"
+        },
+        "prob": {
+          "type": "number"
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "start_ms",
+        "end_ms"
+      ],
+      "additionalProperties": true
+    }
+  }
+}
