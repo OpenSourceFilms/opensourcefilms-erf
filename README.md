@@ -1,10 +1,10 @@
-# ERF — Life® Editorial Retrieval Fabric
+# ERF — Editorial Retrieval Fabric
 
-ERF is a self-hosted media intelligence pipeline built by Open Source Films to support the production of *Life®*, an independent feature film. It ingests raw production footage, processes it through audio, visual, and identity analysis, and exposes a queryable semantic index. Editors query in plain English and get back timestamped clips, thumbnails, and metadata that they pull into DaVinci Resolve. ERF is built for a handful of trusted in-house users — it is not a multi‑tenant product.
+ERF is a self-hosted media intelligence pipeline built by Open Source Films to support an independent feature film production. It ingests raw production footage, processes it through audio, visual, and identity analysis, and exposes a queryable semantic index. Editors query in plain English and get back timestamped clips, thumbnails, and metadata that they pull into DaVinci Resolve. ERF is built for a handful of trusted in-house users — it is not a multi‑tenant product.
 
 ## Why
 
-Behind‑the‑scenes footage from *Life®* is itself part of the final release. A small editorial team needed to navigate hundreds of hours of dailies quickly — finding specific moments by what is said, who is on screen, what is happening, or even by the emotional tone of a scene — without spending weeks logging footage manually. ERF automates that entire process, turning the production's raw media into a searchable memory that editors can query in natural language.
+Behind‑the‑scenes footage from the production is itself part of the final release. A small editorial team needed to navigate hundreds of hours of dailies quickly — finding specific moments by what is said, who is on screen, what is happening, or even by the emotional tone of a scene — without spending weeks logging footage manually. ERF automates that entire process, turning the production's raw media into a searchable memory that editors can query in natural language.
 
 ## Architecture
 
@@ -16,7 +16,7 @@ Every piece of data ERF produces falls into one of two categories: **canonical**
 - **Explicit status records** — every pipeline stage writes a status record (success or failure) before exit. Absence of a status record is an error; no silent failures.
 - **Idempotent and resumable** — re‑running a completed stage on the same input always produces identical output. No cleanup is required before a re‑run.
 - **Schema versions are a contract** — once data exists under a schema version, field meanings never change silently. New additive fields trigger a minor version bump; anything else forces a major version bump and a migration script.
-- **Identity/speaker recognition is opt‑in per project** — it is enabled for the *Life®* production itself, but architecturally off by default.
+- **Identity/speaker recognition is opt‑in per project** — it is enabled for this production itself, but architecturally off by default.
 
 ## Pipeline stages
 

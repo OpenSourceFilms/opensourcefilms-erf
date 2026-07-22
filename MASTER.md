@@ -1,4 +1,4 @@
-# Life® Editorial Retrieval Fabric — MASTER.md
+# Editorial Retrieval Fabric — MASTER.md
 
 **Status:** authoritative build contract. Supersedes the prior `/workspace/pipeline/` system and the earlier B00–B46 ERF brief sequence (now void).
 **Version:** 1.5.0
@@ -63,7 +63,7 @@ This is a contract, not a discussion. Implement exactly what is written. Where a
 
 ## 1. Project identity
 
-**Life® Editorial Retrieval Fabric (ERF).** A self-hosted media intelligence pipeline on a RunPod MooseFS persistent volume (`cmkgi43hcx`, EU-RO-1). It ingests raw production media for the not-for-profit feature *Life®*, processes it through audio, visual, and (later) identity analysis, and produces a queryable semantic index. In-house editors query in plain English and receive timestamped clips, thumbnails, and metadata they pull into DaVinci Resolve. A handful of trusted users. Not a product. Must not be a hassle to operate.
+**Editorial Retrieval Fabric (ERF).** A self-hosted media intelligence pipeline on a RunPod MooseFS persistent volume (`cmkgi43hcx`, EU-RO-1). It ingests raw production media for a not-for-profit independent feature film, processes it through audio, visual, and (later) identity analysis, and produces a queryable semantic index. In-house editors query in plain English and receive timestamped clips, thumbnails, and metadata they pull into DaVinci Resolve. A handful of trusted users. Not a product. Must not be a hassle to operate.
 
 ---
 
@@ -89,7 +89,7 @@ This system will never:
 3. **Every stage writes a status record before exit** — success or failure. No silent failures. A crashed stage that wrote no status is treated as `error` on reap.
 4. **Stages are idempotent and resumable.** Re-running a completed stage on the same input reproduces identical output (same IDs, same content) and is safe. Determinism is enforced by the ID conventions in §6.
 5. **Schema version is a contract.** Once data exists under a schema version, fields are not silently changed. Additive nullable fields ⇒ MINOR bump. Any change to a field's type, meaning, required-set, an ID convention, a vector dim/metric, or a table name ⇒ MAJOR bump + migration script + a new Opus brief (§15).
-6. **Identity is opt-in per project, on for Life®.** The architecture supports running with identity off; Phase 3 fields exist in schema from day one but stay null until enrolled.
+6. **Identity is opt-in per project, on for this production.** The architecture supports running with identity off; Phase 3 fields exist in schema from day one but stay null until enrolled.
 7. **Source-type axis.** Every media_manifest carries a `kind` field (`raw_footage` | `published_output` | `audience_text`). Stage A defaults all new ingests to `raw_footage`. Non-footage sources (finished edits, audience text) ride the same ingest/journal spine — they do not require a parallel system.
 8. **Overlay-facet pattern for human-authored annotations.** Any human-authored annotation is an overlay facet written to `catalog/overlays/{facet_type}/{media_id}.json`, never a rewrite of an existing stage artifact. `identity_overlay` is the reference implementation of this pattern. Atoms are not immutable-final, but any facet layered over them must be machine-distinguishable from the canonical stage output.
 
@@ -643,7 +643,7 @@ Contract: `modality=text ⇒ model_tag=qwen3-8b, dim=4096`; `modality=visual ⇒
     "person_id": {"type": "string", "pattern": "^p_[a-z0-9_]+$"},
     "display_name": {"type": "string"},
     "created_at_utc": {"type": "string", "format": "date-time"},
-    "consent": {"type": "boolean", "default": true, "description": "facial/speaker recognition consent on record (true for Life® cast/crew)"},
+    "consent": {"type": "boolean", "default": true, "description": "facial/speaker recognition consent on record (true for enrolled cast/crew)"},
     "face_enrolled": {"type": "boolean", "default": false},
     "voice_enrolled": {"type": "boolean", "default": false},
     "face_gallery_relpath": {"type": ["string","null"], "default": null},
