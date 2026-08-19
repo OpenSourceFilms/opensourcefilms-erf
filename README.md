@@ -55,6 +55,16 @@ The build backend is `hatchling` (configured in `pyproject.toml`). There is no p
 
 You must obtain your own model checkpoints and weights; they are not distributed with this repository. If you enable identity features, you must also enrol your own identities.
 
+## Run on Runpod
+
+ERF was developed and runs in production on Runpod GPU pods. `RUNPOD.md` documents the recommended
+GPU class/VRAM tiers per stage role, the per-stage venv split (ERF deliberately has no single
+`requirements.txt`, since its ML stages have conflicting dependency sets), required environment
+variables (names only, never values), model/checkpoint requirements, and which parts need external
+APIs (DeepSeek for LLM-backed stages). It also states plainly what was and wasn't re-validated in
+its most recent pass: the code-only test suite was, live GPU inference wasn't (no GPU was available
+to validate against).
+
 ## What's not included
 
 This public release contains only the pipeline code and its architecture/schema documentation. Deliberately excluded:
