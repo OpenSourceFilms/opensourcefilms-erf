@@ -45,7 +45,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path("/workspace/erf")
+ROOT = Path(__file__).resolve().parents[2]  # portable checkout root, same as erf.paths.ROOT
 # D-Log-35 seam: shadow bake-off runs must not write the production spine.
 # ERF_CATALOG_ROOT redirects the outcome/flag label surface alongside the rest
 # of the catalog; ERF_JOURNAL_DB redirects the journal itself. Unset = unchanged.
