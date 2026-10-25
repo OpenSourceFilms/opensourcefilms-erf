@@ -80,10 +80,10 @@ This public release contains only the pipeline code and its architecture/schema 
 declared anywhere yet; see the install gap above). 233 of 237 tests pass out of the box. The 2
 failures in the recorded public-release test run were associated with missing real
 pipeline-generated catalog data and incomplete deployment-root portability. Those are
-historical results, not a fresh regression-test verdict. `src/erf/outcomes.py` already
-supports `ERF_CATALOG_ROOT` for its outcomes-label directory and `ERF_JOURNAL_DB` for
-the journal path; other modules and scripts may still assume the original filesystem
-layout. 2 tests were skipped in that recorded run (optional extras unavailable).
+historical results, not a fresh regression-test verdict. `src/erf/outcomes.py` now resolves its default catalog/journal under the
+checked-out repository and supports `ERF_CATALOG_ROOT` / `ERF_JOURNAL_DB` for
+explicit redirection. Other modules and scripts may still assume the original
+filesystem layout. 2 tests were skipped in that recorded run (optional extras unavailable).
 
 ## Known limitations
 
@@ -91,6 +91,16 @@ This is production pipeline code shared for its architecture and techniques, not
 
 - Many scripts under `bin/` still assume the pipeline's original deployment root path as a hardcoded default. The `src/erf/paths.py` module provides a partial seam: the catalog root can be overridden via the `ERF_CATALOG_ROOT` environment variable, but not every script has been migrated onto it yet.
 - For isolated outcome-journal experiments, set both `ERF_CATALOG_ROOT` and `ERF_JOURNAL_DB` **before importing** `erf.outcomes`. The module binds its defaults at import time. An overridden catalog alone does not redirect the SQLite journal. Use disposable paths and never point public smoke tests at a working production journal.
+
+A separate standard-library test can verify safe outcome/journal paths without
+installing model dependencies:
+
+```bash
+python3 -m unittest discover -s tests -p 'test_outcomes_portability_unittest.py' -v
+```
+
+This test writes only to temporary paths and does not require the production
+footage catalog or GPUs.
 
 ## License
 
