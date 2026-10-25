@@ -78,18 +78,19 @@ This public release contains only the pipeline code and its architecture/schema 
 
 `pip install -e .` then `pytest tests/` (also needs `jsonschema` and `scikit-learn`, which aren't
 declared anywhere yet; see the install gap above). 233 of 237 tests pass out of the box. The 2
-failures are expected consequences of this being a code-only export: one requires real
-pipeline-generated catalog data that isn't shipped here, and one is a live demonstration of the
-hardcoded-root limitation described below (`src/erf/outcomes.py` doesn't yet use the
-`ERF_CATALOG_ROOT` seam that `src/erf/paths.py` provides, so it resolves against the original
-deployment path rather than wherever you cloned this repo). 2 tests are skipped (need optional
-extras not installed here).
+failures in the recorded public-release test run were associated with missing real
+pipeline-generated catalog data and incomplete deployment-root portability. Those are
+historical results, not a fresh regression-test verdict. `src/erf/outcomes.py` already
+supports `ERF_CATALOG_ROOT` for its outcomes-label directory and `ERF_JOURNAL_DB` for
+the journal path; other modules and scripts may still assume the original filesystem
+layout. 2 tests were skipped in that recorded run (optional extras unavailable).
 
 ## Known limitations
 
 This is production pipeline code shared for its architecture and techniques, not a polished, turn‑key product. Expect to adapt paths and configuration for your own deployment.
 
 - Many scripts under `bin/` still assume the pipeline's original deployment root path as a hardcoded default. The `src/erf/paths.py` module provides a partial seam: the catalog root can be overridden via the `ERF_CATALOG_ROOT` environment variable, but not every script has been migrated onto it yet.
+- For isolated outcome-journal experiments, set both `ERF_CATALOG_ROOT` and `ERF_JOURNAL_DB` **before importing** `erf.outcomes`. The module binds its defaults at import time. An overridden catalog alone does not redirect the SQLite journal. Use disposable paths and never point public smoke tests at a working production journal.
 
 ## License
 
