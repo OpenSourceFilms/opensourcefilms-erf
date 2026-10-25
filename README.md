@@ -102,6 +102,12 @@ python3 -m unittest discover -s tests -p 'test_outcomes_portability_unittest.py'
 This test writes only to temporary paths and does not require the production
 footage catalog or GPUs.
 
+To explore the event journal without any models, try the
+[disposable outcome-journal example](docs/try-outcome-journal.md). It records
+synthetic `ok` and `empty` outcomes, confirms projection behavior and removes
+its temporary database automatically. GitHub Actions runs this example and
+the isolated portability tests on relevant changes.
+
 ## License
 
 Open Source Films' own code in this repository is licensed under the MIT License.
