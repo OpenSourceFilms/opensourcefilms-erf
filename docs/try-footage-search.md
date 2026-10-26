@@ -96,6 +96,27 @@ checks hit IDs and timestamps, negative queries, determinism, malformed
 query rejection, HTML escaping and opt-in output safety. It runs in public
 GitHub Actions and does not use GPU resources.
 
+### Exact-phrase quoting safeguard
+
+The repository's `erf.fts.search_exact()` helper now treats embedded
+double quotes in its phrase argument as **literal FTS5 text** by doubling
+each quote inside the surrounding phrase delimiter. Previously, a
+user-supplied phrase such as `steam" OR "water` became FTS5's
+`"steam" OR "water"` Boolean expression and returned unrelated
+matches instead of keeping the requested phrase together.
+
+Five disposable FTS5 regression tests check this case, unmatched and
+ordinary phrases, unbalanced quotes, input validation and index
+immutability. This is **FTS5 token-phrase matching**, not byte-for-byte
+punctuation equivalence or semantic footage matching. The existing
+`search_chunks()` general-query entry point retains its intentionally
+broader FTS5 expression support; callers seeking exact phrases should
+use `search_exact()` rather than constructing query syntax manually.
+
+```bash
+python3 -B -m unittest discover -s tests -p 'test_fts_exact_phrase_unittest.py' -v
+```
+
 This demonstrates **lexical FTS5 evidence retrieval**, not whether the live
 ERF search can find a requested person, match a frame visually, interpret
 complex natural language or play an editorial clip. Those require the
