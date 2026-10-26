@@ -92,6 +92,15 @@ This is production pipeline code shared for its architecture and techniques, not
 - Many scripts under `bin/` still assume the pipeline's original deployment root path as a hardcoded default. The `src/erf/paths.py` module provides a partial seam: the catalog root can be overridden via the `ERF_CATALOG_ROOT` environment variable, but not every script has been migrated onto it yet.
 - For isolated outcome-journal experiments, set both `ERF_CATALOG_ROOT` and `ERF_JOURNAL_DB` **before importing** `erf.outcomes`. The module binds its defaults at import time. An overridden catalog alone does not redirect the SQLite journal. Use disposable paths and never point public smoke tests at a working production journal.
 
+Per-media outcome files now reject `media_id` values containing path
+separators, control characters or empty/dot-only names, and refuse an already
+symlinked status file. The validation runs **before** the authoritative
+journal insert, so an invalid filename cannot leave a successful new outcome
+event without its status label. Normal deterministic media IDs are
+unchanged. These are **local filename boundary checks**, not a guarantee
+against a hostile process concurrently replacing files or directories, and
+not a security assessment of the deployed ERF web/search service.
+
 A separate standard-library test can verify safe outcome/journal paths without
 installing model dependencies:
 

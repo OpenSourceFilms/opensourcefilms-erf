@@ -67,6 +67,24 @@ _REASON_REQUIRED = {"skip", "empty", "error", "degraded", "stale"}
 _log = logging.getLogger("erf.outcomes")
 _file_lock = threading.Lock()  # serialise same-process status-file read-modify-writes
 
+
+def _status_path(media_id: str) -> Path:
+    """Confine per-media JSON labels to one filename in STATUS_DIR.
+
+    Call before recording an outcome in the journal, so malformed IDs cannot
+    leave a successful database row and then fail the status-file write.
+    Normal deterministic IDs, including m_unknown* and synthetic test IDs,
+    retain their existing spelling and behaviour.
+    """
+    if (not isinstance(media_id, str) or not media_id or media_id in (".", "..")
+            or "/" in media_id or "\\" in media_id
+            or any(ord(char) < 32 or ord(char) == 127 for char in media_id)):
+        raise ValueError("media_id must be a single nonempty status filename component")
+    path = STATUS_DIR / (media_id + ".json")
+    if path.is_symlink():
+        raise ValueError("refusing symlinked per-media status path")
+    return path
+
 # NOTE: kept in sync with erf.journal._SCHEMA's events/events_trace block (see the
 # comment there) — duplicated, not imported, to avoid a module-level import cycle
 # between journal.py and outcomes.py.
@@ -205,7 +223,7 @@ def trace(media_id: str, stage: str, event_type: str, payload: dict | None = Non
 
 
 def _merge_status_file(media_id: str, mutate) -> None:
-    path = STATUS_DIR / f"{media_id}.json"
+    path = _status_path(media_id)
     with _file_lock:
         doc: dict = {}
         if path.exists():
@@ -242,6 +260,8 @@ def record(media_id: str, stage: str, status: str, *, reason: str | None = None,
     failing predicate name(s). This only fires for `status="ok"`; a caller MAY
     also pass `status="degraded"` explicitly (its own `reason` is then required
     and kept, as normal — no derivation runs)."""
+    # Verify the file boundary *before* writing the authoritative DB event.
+    _status_path(media_id)
     if status not in VALID_STATUS:
         raise ValueError(f"invalid status {status!r}; expected one of {sorted(VALID_STATUS)}")
     if status == "ok" and health:
@@ -277,6 +297,7 @@ def record(media_id: str, stage: str, status: str, *, reason: str | None = None,
 
 def set_flag(media_id: str, name: str, value, *, reason: str | None = None) -> None:
     """Set an explicit media-level label (e.g. has_speech=False) in the status file."""
+    _status_path(media_id)
     entry = {"value": value, "reason": reason, "at_utc": _now()}
     _merge_status_file(media_id, lambda d: d.setdefault("flags", {}).__setitem__(name, entry))
 
@@ -430,7 +451,7 @@ def migrate_phase1(db: Path = DB) -> dict:
 # ── query API (any stage can consult any other) ───────────────────────────────
 
 def for_media(media_id: str) -> dict:
-    path = STATUS_DIR / f"{media_id}.json"
+    path = _status_path(media_id)
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
