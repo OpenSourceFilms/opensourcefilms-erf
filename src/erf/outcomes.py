@@ -77,7 +77,7 @@ def _status_path(media_id: str) -> Path:
     retain their existing spelling and behaviour.
     """
     if (not isinstance(media_id, str) or not media_id or media_id in (".", "..")
-            or "/" in media_id or "\\\\" in media_id
+            or "/" in media_id or "\\" in media_id
             or any(ord(char) < 32 or ord(char) == 127 for char in media_id)):
         raise ValueError("media_id must be a single nonempty status filename component")
     path = STATUS_DIR / (media_id + ".json")
