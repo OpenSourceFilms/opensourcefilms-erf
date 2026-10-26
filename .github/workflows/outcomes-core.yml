@@ -12,6 +12,7 @@ on:
       - "tests/test_fts_search_demo_unittest.py"
       - "src/erf/fts.py"
       - "tests/test_fts_media_attribution_unittest.py"
+      - "tests/test_fts_exact_phrase_unittest.py"
   pull_request:
     paths:
       - ".github/workflows/outcomes-core.yml"
@@ -23,6 +24,7 @@ on:
       - "tests/test_fts_search_demo_unittest.py"
       - "src/erf/fts.py"
       - "tests/test_fts_media_attribution_unittest.py"
+      - "tests/test_fts_exact_phrase_unittest.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -48,5 +50,7 @@ jobs:
         run: python -B -m unittest discover -s tests -p "test_fts_search_demo_unittest.py" -v
       - name: Verify synthetic FTS media attribution and cross-media isolation
         run: python -B -m unittest discover -s tests -p "test_fts_media_attribution_unittest.py" -v
+      - name: Verify literal FTS5 exact phrases never become Boolean OR
+        run: python -B -m unittest discover -s tests -p "test_fts_exact_phrase_unittest.py" -v
       - name: Execute real FTS5 query on synthetic media records
         run: python -B examples/fts_search_demo.py --query steam
