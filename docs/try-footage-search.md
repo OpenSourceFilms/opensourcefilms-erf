@@ -63,6 +63,32 @@ search. HTML output is **opt-in** and must be a new path outside the checkout.
 Queries accepted by this teaching example are deliberately restricted to
 1-5 simple words; it is not a general-purpose public search endpoint.
 
+## Media attribution integrity of the indexer
+
+The real `erf.fts.index_media()` and `index_ocr()` functions now refuse
+a catalog JSONL record whose `media_id` disagrees with the media being
+reindexed. The check runs **before** the SQLite `DELETE`/insert
+transaction. Invalid mixed-media chunks, words or OCR rows therefore
+cannot silently cross-contaminate another recording's FTS results or
+delete the target's previous search entries.
+
+The requested `media_id` is also validated as one safe ASCII basename
+before constructing a catalog path, preventing a path-like argument
+from reading arbitrary JSONL files adjacent to the catalog. This
+allows canonical `m_<12hex>` IDs and compatible simple legacy labels;
+it does not infer that a record is correctly attributed merely because
+its declared ID agrees. Upstream catalogue provenance and speaker
+identity still need separate evidence checks.
+
+Six new disposable FTS5 tests cover malicious/malformed media keys,
+mixed-media transcript and OCR records, zero index mutations on
+rejection, and successful idempotent reindexing that preserves
+unrelated media. Run the tests without pip dependencies:
+
+~~~bash
+python3 -B -m unittest discover -s tests -p 'test_fts_media_attribution_unittest.py' -v
+~~~
+
 ## What was actually verified
 
 The repository regression suite exercises the real indexing/search code,
