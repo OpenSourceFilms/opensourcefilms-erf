@@ -10,6 +10,27 @@ weights, a MooseFS-backed network volume, and identity data this repo deliberate
 It is a guide to cloning this repo on a Runpod pod, installing it cleanly, and running the one path
 that has actually been validated: the test suite.
 
+## Portability: what is required versus deployment-specific
+
+These distinctions refer to the **published source and documented architecture**, not to a fresh
+end-to-end qualification of an alternative deployment. The hardware and datacenter figures
+below are historical reference notes; they are not a live inventory or a promise of today's
+OSF infrastructure.
+
+| Concern | Required for the documented behaviour | Runpod/OSF-specific assumption or portability work |
+|---|---|---|
+| Offline public code/tests | Compatible Python (tested with 3.11) and declared test extras; temporary writable filesystem. | No Runpod account, GPU, model weights, network volume, identity data or API keys required for the isolated non-GPU tests. |
+| Canonical artifacts and outcome journal | Stable paths, a reliable one-writer-per-artifact rule, and atomic same-filesystem replacement for published status/catalog writes. | The production design assumes a MooseFS-backed `/workspace` volume across pods. Other storage must be evaluated for rename/visibility/locking semantics; this repo does not qualify NFS, block storage or object stores as drop-in equivalents. |
+| GPU inference | Model-specific compatible accelerator runtime, VRAM, separate dependency sets, and legitimately obtained checkpoints. | CUDA image versions, Blackwell-specific cu128 pins, GPU classes and VRAM numbers below describe the recorded Runpod configuration, not a vendor-independent requirement. GPU paths were not revalidated in this public release. |
+| Dispatch and multi-pod orchestration | Some mechanism to start workers, enforce ownership/capacity, share input and publish results with explicit outcome tracking. | `MASTER.md` describes a historical Runpod API-based dispatch design with credentials and expected mounts. **The public tree does not ship `src/erf/dispatch.py` or a complete `erf-dispatch` launcher.** A reader must provide an independently qualified integration; the isolated tests do not exercise this layer. |
+| Application, media and identity | Your own media, model enrolment data if permitted/needed, and services/configuration satisfying the stage contracts. | Production media, identity records, live state, secrets and checkpoints are intentionally omitted from the public release. Do not substitute hardcoded historical paths or credentials. |
+| LLM-backed story/query stages | An authorised LLM backend and its supported interface if those optional stages are enabled. | Published code documents DeepSeek credentials and provider-specific integration. It is not needed for isolated status/journal tests and is not demonstrated to work with another provider unchanged. |
+
+**Practical starting point:** run the offline code-only example below using disposable catalog
+and journal paths. Treat successful tests as validation of those narrow contracts only. A full
+deployment requires separately qualifying filesystems, queueing/dispatch, model environments,
+licences and end-to-end inference. See `MASTER.md` for the historical implementation details.
+
 ## Recommended pod
 
 Facts below are carried over from the live production deployment's own environment notes
@@ -116,8 +137,10 @@ don't require GPU inference or production data to exercise honestly.
   in the pipeline itself, used for LLM-backed editorial stages (labeling, beat-plan authoring,
   narrative assembly critique). ASR, diarization, embedding, and face stages all run local models,
   no external API calls.
-- **RunPod's own REST/GraphQL API** (`RUNPOD_API_KEY`) is used only by the optional GPU-pod
-  dispatch layer (`src/erf/dispatch.py`, `MASTER.md` §10), not by the pipeline stages themselves.
+- **RunPod's own REST/GraphQL API** (`RUNPOD_API_KEY`) is part of the historical optional GPU-pod
+  dispatch design described in `MASTER.md` §10, not an API dependency of the isolated pipeline tests.
+  The `src/erf/dispatch.py` file cited by previous guidance is **not in this public repository**;
+  cloning and installing this code does not provide a complete Runpod pod-launching control plane.
 
 ## Validation (this pass, 2026-08-19)
 
