@@ -189,8 +189,15 @@ def search_exact(
     *,
     limit: int = 50,
 ) -> list[dict]:
-    """Exact-phrase search using FTS5 phrase syntax."""
-    fts_query = f'"{phrase}"'
+    """Treat caller text as ONE FTS5 phrase, never a Boolean expression.
+
+    FTS5 escapes a literal double quote within a quoted phrase by doubling
+    it. Without this, e.g. 'steam" OR "water' becomes an executable OR
+    query and silently broadens supposedly exact retrieval.
+    """
+    if not isinstance(phrase, str) or not phrase.strip():
+        raise ValueError("exact phrase must be a nonempty string")
+    fts_query = '"' + phrase.replace('"', '""') + '"'
     return search_chunks(db_path, fts_query, limit=limit)
 
 
