@@ -8,6 +8,8 @@ on:
       - "src/erf/paths.py"
       - "tests/test_outcomes_portability_unittest.py"
       - "examples/explicit_outcomes_demo.py"
+      - "examples/fts_search_demo.py"
+      - "tests/test_fts_search_demo_unittest.py"
   pull_request:
     paths:
       - ".github/workflows/outcomes-core.yml"
@@ -15,6 +17,8 @@ on:
       - "src/erf/paths.py"
       - "tests/test_outcomes_portability_unittest.py"
       - "examples/explicit_outcomes_demo.py"
+      - "examples/fts_search_demo.py"
+      - "tests/test_fts_search_demo_unittest.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -36,3 +40,7 @@ jobs:
         run: python -B -m unittest discover -s tests -p "test_outcomes_portability_unittest.py" -v
       - name: Run disposable outcome demo
         run: python examples/explicit_outcomes_demo.py
+      - name: Exercise lexical footage-search example
+        run: python -B -m unittest discover -s tests -p "test_fts_search_demo_unittest.py" -v
+      - name: Execute real FTS5 query on synthetic media records
+        run: python -B examples/fts_search_demo.py --query steam

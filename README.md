@@ -117,6 +117,21 @@ synthetic `ok` and `empty` outcomes, confirms projection behavior and removes
 its temporary database automatically. GitHub Actions runs this example and
 the isolated portability tests on relevant changes.
 
+## Search example with timestamped results and synthetic thumbnails
+
+Try the [runnable footage-search demonstration](docs/try-footage-search.md).
+It invokes ERF's **actual SQLite FTS5 indexing and lexical search code** over
+three invented transcript chunks, returning evidence-grounded snippets,
+media IDs and in/out timecodes. A generated standalone HTML report shows
+timestamped matches beside **clearly synthetic SVG illustrations**.
+
+Run `python3 -B examples/fts_search_demo.py` to see the default
+two-result `steam` query, or specify `--html /tmp/erf-fts-synthetic.html`
+to create a self-contained browser preview. No GPU, model checkpoints, real
+filming media, installed third-party Python packages or live services are
+needed. This is **lexical retrieval only**, not the private multi-modal
+semantic-search interface or a genuine video-thumbnail/clip extract.
+
 ## License
 
 Open Source Films' own code in this repository is licensed under the MIT License.
