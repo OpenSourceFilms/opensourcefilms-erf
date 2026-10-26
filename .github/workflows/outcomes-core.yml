@@ -10,6 +10,8 @@ on:
       - "examples/explicit_outcomes_demo.py"
       - "examples/fts_search_demo.py"
       - "tests/test_fts_search_demo_unittest.py"
+      - "src/erf/fts.py"
+      - "tests/test_fts_media_attribution_unittest.py"
   pull_request:
     paths:
       - ".github/workflows/outcomes-core.yml"
@@ -19,6 +21,8 @@ on:
       - "examples/explicit_outcomes_demo.py"
       - "examples/fts_search_demo.py"
       - "tests/test_fts_search_demo_unittest.py"
+      - "src/erf/fts.py"
+      - "tests/test_fts_media_attribution_unittest.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -42,5 +46,7 @@ jobs:
         run: python examples/explicit_outcomes_demo.py
       - name: Exercise lexical footage-search example
         run: python -B -m unittest discover -s tests -p "test_fts_search_demo_unittest.py" -v
+      - name: Verify synthetic FTS media attribution and cross-media isolation
+        run: python -B -m unittest discover -s tests -p "test_fts_media_attribution_unittest.py" -v
       - name: Execute real FTS5 query on synthetic media records
         run: python -B examples/fts_search_demo.py --query steam
