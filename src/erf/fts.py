@@ -5,6 +5,7 @@ Provides exact-phrase, keyword, and path/command query support.
 """
 from __future__ import annotations
 
+import re
 import sqlite3
 from pathlib import Path
 
@@ -21,17 +22,41 @@ def _connect(db_path: Path) -> sqlite3.Connection:
 
 # ── Population ────────────────────────────────────────────────────────────────
 
+# Canonical IDs are m_<12hex>. Older/internal labels have also existed.
+# Accept an ASCII basename without assuming a specific identifier version.
+_SAFE_MEDIA_ID = re.compile(r"[A-Za-z0-9_-]{1,128}\Z")
+
+
+def _index_media_id(media_id: str) -> str:
+    """Do not allow a media key to address a different catalog directory."""
+    if type(media_id) is not str or not _SAFE_MEDIA_ID.fullmatch(media_id):
+        raise ValueError("media_id must be an ASCII basename (letters, digits, _ or -)")
+    return media_id
+
+
+def _verify_scope(records: list[dict], media_id: str, kind: str) -> None:
+    """Reject mixed-media catalogs *before* the index's DELETE/INSERT phase."""
+    for index, record in enumerate(records):
+        if not isinstance(record, dict) or record.get("media_id") != media_id:
+            raise ValueError(
+                f"{kind} record {index} does not belong to requested media_id"
+            )
+
+
 def index_media(
     media_id: str,
     catalog: Path,
     db_path: Path,
 ) -> dict[str, int]:
     """Index one media file's chunks and words into erf_fts.db. Idempotent."""
+    media_id = _index_media_id(media_id)
     chunks_path = catalog / "chunks" / f"{media_id}.jsonl"
     words_path = catalog / "asr" / f"{media_id}.words.jsonl"
 
     chunks = read_jsonl(chunks_path) if chunks_path.exists() else []
     words = read_jsonl(words_path) if words_path.exists() else []
+    _verify_scope(chunks, media_id, "chunk")
+    _verify_scope(words, media_id, "word")
 
     conn = _connect(db_path)
     try:
@@ -62,8 +87,10 @@ def index_media(
 
 def index_ocr(media_id: str, catalog: Path, db_path: Path) -> dict[str, int]:
     """Index OCR records into ocr_fts table. Idempotent."""
+    media_id = _index_media_id(media_id)
     ocr_path = catalog / "ocr" / f"{media_id}.jsonl"
     records = read_jsonl(ocr_path) if ocr_path.exists() else []
+    _verify_scope(records, media_id, "OCR")
 
     conn = _connect(db_path)
     try:
